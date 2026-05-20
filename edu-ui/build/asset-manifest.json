@@ -1,0 +1,24 @@
+{
+  "files": {
+    "main.css": "/static/css/main.ce8e14df.css",
+    "main.js": "/static/js/main.d7c89f76.js",
+    "static/js/422.1ed655fd.chunk.js": "/static/js/422.1ed655fd.chunk.js",
+    "static/media/ringring.mp3": "/static/media/ringring.278d781685641c6296a1.mp3",
+    "static/media/got-it-done-613.mp3": "/static/media/got-it-done-613.89a311f04f29deab239c.mp3",
+    "static/media/loading.gif": "/static/media/loading.10625dac567208a8ef3d.gif",
+    "index.html": "/index.html",
+    "static/media/excel.svg": "/static/media/excel.3ec1a038616d1c65804faaab8f606274.svg",
+    "static/media/powerpoint.svg": "/static/media/powerpoint.c8b6ffffde1ec184fe3ee14e91686901.svg",
+    "static/media/file.svg": "/static/media/file.92aa297839cbd68a702ed3f61320a017.svg",
+    "static/media/pdf.svg": "/static/media/pdf.2762b816cefbe09c51f13e45e82d3728.svg",
+    "static/media/word.svg": "/static/media/word.f8a1bed79b366b1d7a32cc6e70d1ba3d.svg",
+    "static/media/send.svg": "/static/media/send.fab9d9661d8d41abd207906755d8209e.svg",
+    "main.ce8e14df.css.map": "/static/css/main.ce8e14df.css.map",
+    "main.d7c89f76.js.map": "/static/js/main.d7c89f76.js.map",
+    "422.1ed655fd.chunk.js.map": "/static/js/422.1ed655fd.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ce8e14df.css",
+    "static/js/main.d7c89f76.js"
+  ]
+}

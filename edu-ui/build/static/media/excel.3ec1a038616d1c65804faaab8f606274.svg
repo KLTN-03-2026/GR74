@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="112" viewBox="0 0 96 112" fill="none">
+  <path d="M16 4h42l22 22v78a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4Z" fill="#DCFCE7"/>
+  <path d="M58 4v22h22" fill="#86EFAC"/>
+  <rect x="20" y="55" width="56" height="28" rx="5" fill="#16A34A"/>
+  <text x="48" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="800" fill="white">XLS</text>
+  <path d="M27 32h34M27 43h34M38 28v20M50 28v20" stroke="#15803D" stroke-width="4" stroke-linecap="round"/>
+</svg>

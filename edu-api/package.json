@@ -1,0 +1,43 @@
+{
+  "name": "Edu Social",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js",
+    "client": "cd client && npm run start",
+    "server-install": "npm install",
+    "client-install": "cd client && npm install",
+    "install-all": "concurrently \"npm run server-install\" \"npm run client-install\" ",
+    "dev": "concurrently \"npm run server\" \"npm run client\" ",
+    "heroku-postbuild": "cd client && npm install && npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "bcrypt": "^5.1.1",
+    "compression": "^1.8.1",
+    "concurrently": "^6.5.1",
+    "connect-redis": "^9.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^8.6.0",
+    "express": "^4.22.1",
+    "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.13.23",
+    "nodemailer": "^6.10.1",
+    "peer": "^0.6.1",
+    "redis": "^5.10.0",
+    "socket.io": "^4.8.3",
+    "stripe": "^17.7.0",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
