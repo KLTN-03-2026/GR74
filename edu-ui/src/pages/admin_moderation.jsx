@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteDataAPI, getDataAPI } from "../utils/fetchData";
+import { deleteDataAPI, getDataAPI, patchDataAPI } from "../utils/fetchData";
 import { GLOBALTYPES } from "../redux/actions/globalTypes";
 import { getErrorMessage } from "../utils/errorMessage";
 import AdminShell from "../components/admin/AdminShell";
@@ -93,6 +93,8 @@ const AdminModeration = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [removingId, setRemovingId] = useState("");
+  const [approvingId, setApprovingId] = useState("");
+  const [moderation, setModeration] = useState("pending");
   const [confirmPost, setConfirmPost] = useState(null);
 
   const canManage = auth.user?.role === "admin";
@@ -110,11 +112,12 @@ const AdminModeration = () => {
     value = search,
     nextFilter = filter,
     nextMediaType = mediaType,
+    nextModeration = moderation,
   ) => {
     if (!auth.token || !canManage) return;
     setLoading(true);
     try {
-      const url = `admin/posts?page=${nextPage}&limit=12&filter=${nextFilter}&mediaType=${nextMediaType}&search=${encodeURIComponent(value)}`;
+      const url = `admin/posts?page=${nextPage}&limit=12&filter=${nextFilter}&mediaType=${nextMediaType}&moderation=${nextModeration}&search=${encodeURIComponent(value)}`;
       const res = await getDataAPI(url, auth.token);
       setPosts(res.data.posts);
       setPage(res.data.page);
@@ -128,7 +131,7 @@ const AdminModeration = () => {
   };
 
   useEffect(() => {
-    loadPosts(1, "", "all", "all");
+    loadPosts(1, "", "all", "all", "pending");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.token, canManage]);
 
@@ -136,17 +139,22 @@ const AdminModeration = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    loadPosts(1, search, filter, mediaType);
+    loadPosts(1, search, filter, mediaType, moderation);
   };
 
   const changeFilter = (value) => {
     setFilter(value);
-    loadPosts(1, search, value, mediaType);
+    loadPosts(1, search, value, mediaType, moderation);
   };
 
   const changeMediaType = (value) => {
     setMediaType(value);
-    loadPosts(1, search, filter, value);
+    loadPosts(1, search, filter, value, moderation);
+  };
+
+  const changeModeration = (value) => {
+    setModeration(value);
+    loadPosts(1, search, filter, mediaType, value);
   };
 
   const removePost = async () => {
@@ -166,6 +174,24 @@ const AdminModeration = () => {
       dispatch({ type: GLOBALTYPES.ALERT, payload: { error: getErrorMessage(err) } });
     } finally {
       setRemovingId("");
+    }
+  };
+
+  const approvePost = async (postId) => {
+    setApprovingId(postId);
+    try {
+      const res = await patchDataAPI(`admin/posts/${postId}/approve`, {}, auth.token);
+      if (moderation === "pending") {
+        setPosts((current) => current.filter((p) => p._id !== postId));
+        setTotal((current) => Math.max(current - 1, 0));
+      } else {
+        setPosts((current) => current.map((p) => p._id === postId ? { ...p, moderationStatus: "approved" } : p));
+      }
+      dispatch({ type: GLOBALTYPES.ALERT, payload: { success: res.data.msg || "Bài viết đã được duyệt." } });
+    } catch (err) {
+      dispatch({ type: GLOBALTYPES.ALERT, payload: { error: getErrorMessage(err) } });
+    } finally {
+      setApprovingId("");
     }
   };
 
@@ -199,13 +225,30 @@ const AdminModeration = () => {
       subtitle="Xem lại bài viết, kiểm tra tác giả, lọc nội dung Premium và xóa các bài không liên quan đến học tập."
       actions={
         <div className="dashboard_actions">
-          <button type="button" onClick={() => loadPosts(page, search, filter, mediaType)} disabled={loading}>
+          <button type="button" onClick={() => loadPosts(page, search, filter, mediaType, moderation)} disabled={loading}>
             {loading ? "Đang tải..." : "Làm mới"}
           </button>
           <Link to="/admin_dashboard">Tổng quan</Link>
         </div>
       }
     >
+
+      <div className="moderation_status_tabs">
+        {[
+          { value: "pending", label: "Chờ duyệt" },
+          { value: "approved", label: "Đã duyệt" },
+          { value: "all", label: "Tất cả" },
+        ].map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            className={`moderation_status_tab${moderation === tab.value ? " active" : ""}`}
+            onClick={() => changeModeration(tab.value)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       <section className="dashboard_metrics moderation_stats">
         <article className="dashboard_metric">
@@ -278,6 +321,9 @@ const AdminModeration = () => {
                 <span>{post.likesCount} lượt thích</span>
                 <span>{post.commentsCount} bình luận</span>
                 <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                {post.moderationStatus === "approved" && (
+                  <span className="moderation_badge_approved">Đã duyệt</span>
+                )}
               </div>
 
               {post.tags?.length > 0 && (
@@ -286,14 +332,26 @@ const AdminModeration = () => {
                 </div>
               )}
 
-              <button
-                type="button"
-                className="moderation_remove"
-                onClick={() => setConfirmPost(post)}
-                disabled={removingId === post._id}
-              >
-                {removingId === post._id ? "Đang xóa..." : "Xóa bài không phù hợp"}
-              </button>
+              <div className="moderation_actions">
+                {post.moderationStatus !== "approved" && (
+                  <button
+                    type="button"
+                    className="moderation_approve"
+                    onClick={() => approvePost(post._id)}
+                    disabled={approvingId === post._id || Boolean(removingId)}
+                  >
+                    {approvingId === post._id ? "Đang duyệt..." : "Duyệt bài"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="moderation_remove"
+                  onClick={() => setConfirmPost(post)}
+                  disabled={Boolean(removingId) || Boolean(approvingId)}
+                >
+                  {removingId === post._id ? "Đang xóa..." : "Xóa bài vi phạm"}
+                </button>
+              </div>
             </div>
           </article>
         ))}
@@ -301,8 +359,8 @@ const AdminModeration = () => {
 
       {posts.length === 0 && !loading && (
         <section className="dashboard_panel moderation_empty">
-          <h2>Không tìm thấy bài viết</h2>
-          <p>Thử từ khóa hoặc bộ lọc khác.</p>
+          <h2>{moderation === "pending" ? "Không có bài chờ duyệt" : "Không tìm thấy bài viết"}</h2>
+          <p>{moderation === "pending" ? "Tất cả bài viết đã được xử lý." : "Thử từ khóa hoặc bộ lọc khác."}</p>
         </section>
       )}
 

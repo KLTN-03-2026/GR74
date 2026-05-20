@@ -273,7 +273,7 @@ const AdminSection = ({ type }) => {
       {type === "ai" && (
         <>
           <section className="admin_section_metrics">
-            <AdminMetric icon="smart_toy" label="Trạng thái OpenAI" value={learning.aiConfigured ? "Đã bật" : "Chưa bật"} note={`${formatNumber(readiness.score)}% cấu hình sẵn sàng`} />
+            <AdminMetric icon="smart_toy" label="Trợ lý AI (OpenAI)" value={learning.aiConfigured ? "Đã bật" : "Chưa bật"} note={`${formatNumber(readiness.score)}% cấu hình sẵn sàng`} />
             <AdminMetric icon="psychology" label="Người dùng AI" value={formatNumber(totals.premiumUsers)} note="đã được cấp quyền AI" />
             <AdminMetric icon="forum" label="Bình luận AI" value={formatNumber(totals.aiComments)} note={`${formatNumber(learning.aiCommentShare)}% tổng bình luận`} />
             <AdminMetric icon="speed" label="Mức dùng AI" value={`${formatNumber(learning.aiAdoptionRate)}%`} note="AI / tổng người dùng" />
@@ -281,9 +281,9 @@ const AdminSection = ({ type }) => {
           <section className="admin_section_grid">
             <AdminList title="Tài khoản mới" note="Theo dõi quyền AI từng người dùng" rows={dashboard.latestUsers} renderRow={(user) => <UserRow key={user._id} user={user} />} />
             <AdminList title="Kiểm tra cấu hình AI" note="Các dịch vụ cần sẵn sàng" rows={readiness.items.filter((item) => item.key === "openai" || item.key === "jwt" || item.key === "database")} renderRow={(item) => (
-              <div key={item.key} className="admin_section_row">
+              <div key={item.key} className="admin_section_row admin_section_row_wrap">
                 <span className={`material-icons admin_section_row_icon ${item.status ? "is_ok" : "is_bad"}`}>{item.status ? "check_circle" : "error"}</span>
-                <div><strong>{item.label}</strong><span>{item.detail}</span></div>
+                <div><strong>{item.label}</strong><span className="admin_row_detail">{item.detail}</span></div>
                 <small>{item.status ? "OK" : "Thiếu"}</small>
               </div>
             )} />
@@ -295,21 +295,40 @@ const AdminSection = ({ type }) => {
         <>
           <section className="admin_section_metrics">
             <AdminMetric icon="notifications" label="Tổng thông báo" value={formatNumber(totals.notifications)} note="toàn hệ thống" />
-            <AdminMetric icon="markunread" label="Chưa đọc" value={formatNumber(totals.unreadNotifications)} note="người dùng chưa xem" />
-            <AdminMetric icon="shield" label="Thông báo kiểm duyệt" value="Tự động" note="gửi khi admin xóa bài" />
-            <AdminMetric icon="campaign" label="Kênh realtime" value="Socket" note="đẩy trực tiếp khi online" />
+            <AdminMetric icon="markunread" label="Chưa đọc" value={formatNumber(totals.unreadNotifications)} note={`${totals.notifications ? Math.round((totals.unreadNotifications / totals.notifications) * 100) : 0}% chưa được xem`} />
+            <AdminMetric icon="mark_email_read" label="Đã đọc" value={formatNumber((totals.notifications || 0) - (totals.unreadNotifications || 0))} note="người dùng đã xem" />
+            <AdminMetric icon="campaign" label="Kênh realtime" value="Socket.io" note="đẩy trực tiếp khi người dùng online" />
           </section>
           <section className="admin_section_grid">
             <article className="admin_section_panel">
-              <div className="admin_section_panel_head"><div><h2>Luồng thông báo đang quản lý</h2><p>Các nhóm thông báo chính trong hệ thống</p></div></div>
+              <div className="admin_section_panel_head"><div><h2>Loại thông báo trong hệ thống</h2><p>Các sự kiện tự động phát sinh thông báo</p></div></div>
               <div className="admin_section_steps">
-                <p><span>1</span> Người dùng tương tác bài viết: like, comment, follow.</p>
-                <p><span>2</span> Admin xóa bài không phù hợp: gửi thông báo cho chủ bài.</p>
-                <p><span>3</span> Premium/AI: dùng để nhắc quyền hoặc trạng thái tài khoản.</p>
+                <p><span>1</span><b><strong>Tương tác xã hội</strong> — Like, bình luận, theo dõi, kết bạn.</b></p>
+                <p><span>2</span><b><strong>Kiểm duyệt</strong> — Admin xóa bài: tự động thông báo chủ bài.</b></p>
+                <p><span>3</span><b><strong>Tin nhắn</strong> — Nhắn tin trực tiếp và hội thoại nhóm.</b></p>
+                <p><span>4</span><b><strong>Premium / AI</strong> — Kích hoạt quyền, trạng thái tài khoản.</b></p>
               </div>
             </article>
-            <AdminList title="Bài mới cần theo dõi" note="Nguồn phát sinh thông báo gần đây" rows={dashboard.latestPosts} renderRow={(post) => <PostRow key={post._id} post={post} />} />
+            <article className="admin_section_panel">
+              <div className="admin_section_panel_head"><div><h2>Tình trạng thông báo</h2><p>Thống kê đọc / chưa đọc toàn hệ thống</p></div></div>
+              <div className="admin_notif_stats">
+                {[
+                  { icon: "check_circle", color: "#22c55e", label: "Đã đọc", value: formatNumber((totals.notifications || 0) - (totals.unreadNotifications || 0)), unit: "thông báo" },
+                  { icon: "pending", color: "#f59e0b", label: "Chưa đọc", value: formatNumber(totals.unreadNotifications), unit: "thông báo" },
+                  { icon: "notifications", color: "#2563eb", label: "Tổng thông báo", value: formatNumber(totals.notifications), unit: "thông báo" },
+                  { icon: "forum", color: "#6366f1", label: "Hội thoại", value: formatNumber(totals.conversations), unit: `${formatNumber(totals.messages)} tin nhắn` },
+                ].map((row) => (
+                  <div key={row.label} className="admin_notif_stat_row">
+                    <i className="material-icons" style={{ color: row.color }}>{row.icon}</i>
+                    <span>{row.label}</span>
+                    <strong>{row.value}</strong>
+                    <small>{row.unit}</small>
+                  </div>
+                ))}
+              </div>
+            </article>
           </section>
+          <AdminList title="Bài viết mới nhất" note="Nguồn phát sinh thông báo tương tác gần đây" rows={dashboard.latestPosts} renderRow={(post) => <PostRow key={post._id} post={post} />} />
         </>
       )}
 
@@ -387,18 +406,18 @@ const AdminSection = ({ type }) => {
           </section>
           <section className="admin_section_grid">
             <AdminList title="Trạng thái cấu hình" note="Các thành phần vận hành chính" rows={readiness.items} renderRow={(item) => (
-              <div key={item.key} className="admin_section_row">
+              <div key={item.key} className="admin_section_row admin_section_row_wrap">
                 <span className={`material-icons admin_section_row_icon ${item.status ? "is_ok" : "is_bad"}`}>{item.status ? "check_circle" : "error"}</span>
-                <div><strong>{item.label}</strong><span>{item.detail}</span></div>
+                <div><strong>{item.label}</strong><span className="admin_row_detail">{item.detail}</span></div>
                 <small>{item.status ? "Sẵn sàng" : "Cần sửa"}</small>
               </div>
             )} />
             <article className="admin_section_panel">
               <div className="admin_section_panel_head"><div><h2>Việc admin có thể làm</h2><p>Điểm kiểm tra trước khi vận hành</p></div></div>
               <div className="admin_section_steps">
-                <p><span>1</span> Kiểm tra biến môi trường và bảo mật token.</p>
-                <p><span>2</span> Kiểm tra thanh toán Premium và quyền AI.</p>
-                <p><span>3</span> Theo dõi Redis, MongoDB, email và socket realtime.</p>
+                <p><span>1</span><b>Kiểm tra biến môi trường và bảo mật token.</b></p>
+                <p><span>2</span><b>Kiểm tra thanh toán Premium và quyền AI.</b></p>
+                <p><span>3</span><b>Theo dõi Redis, MongoDB, email và socket realtime.</b></p>
               </div>
             </article>
           </section>

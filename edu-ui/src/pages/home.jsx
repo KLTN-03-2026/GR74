@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { BookmarkCheck, Flame, GraduationCap, HelpCircle, LayoutDashboard, PenLine, Settings, ShieldCheck, Sparkles, Trophy, UserRound, UsersRound } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { BookmarkCheck, Flame, Sparkles, Trophy, UsersRound } from 'lucide-react'
 
 import Status from '../components/home/Status'
 import Posts from '../components/home/Posts'
 import RightSideBar from '../components/home/RightSideBar'
-import Avatar from '../components/Avatar'
-import { GLOBALTYPES } from '../redux/actions/globalTypes'
 import { getPosts } from '../redux/actions/postAction'
 
 import { useDispatch, useSelector } from 'react-redux'
@@ -49,36 +46,8 @@ const Home = () => {
     },[])
 
     return (
-        <main className="learning-shell">
-            <div className="learning-dashboard-grid">
-                <aside className="learning-left-nav">
-                    <div className="left-profile">
-                        <Avatar src={auth.user?.avatar} size="big-avatar" />
-                        <div>
-                            <h2>{auth.user?.username}</h2>
-                            <p>{auth.user?.fullname || 'Edu Social learner'}</p>
-                        </div>
-                    </div>
-
-                    <nav className="left-nav-links">
-                        <Link className="active" to="/"><LayoutDashboard size={20} /> Dashboard</Link>
-                        <Link to={`/profile/${auth.user?._id}`}><UserRound size={20} /> My Profile</Link>
-                        <Link to="/discover"><GraduationCap size={20} /> Learning Discover</Link>
-                        <Link to="/message"><UsersRound size={20} /> Chat</Link>
-                        <Link to="/change_password"><Settings size={20} /> Settings</Link>
-                    </nav>
-
-                    <button className="left-post-btn" type="button" onClick={() => dispatch({ type: GLOBALTYPES.STATUS, payload: true })}>
-                        <PenLine size={18} />
-                        Start New Post
-                    </button>
-
-                    <div className="left-nav-footer">
-                        <Link to="/landing"><HelpCircle size={18} /> Help Center</Link>
-                        <Link to="/landing#bao-mat"><ShieldCheck size={18} /> Privacy</Link>
-                    </div>
-                </aside>
-
+        <div className="home_page">
+            <div className="home_inner_grid">
                 <section className="learning-center">
                     <section className="learning-hero">
                         <div>
@@ -181,7 +150,7 @@ const Home = () => {
                     <RightSideBar />
                 </div>
             </div>
-        </main>
+        </div>
     )
 }
 

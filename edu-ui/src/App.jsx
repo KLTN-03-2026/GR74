@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import PageRender from "./customRouter/PageRender";
 import PrivateRouter from "./customRouter/PrivateRouter";
+import UserShell from "./components/home/UserShell";
 
 import Home from "./pages/home";
 import Login from "./pages/login";
@@ -19,6 +20,7 @@ import Admin from "./pages/admin";
 import AdminDashboard from "./pages/admin_dashboard";
 import AdminModeration from "./pages/admin_moderation";
 import AdminSection from "./pages/admin_section";
+import AdminPremiumSupport from "./pages/admin_premium_support";
 
 import Alert from "./components/alert/Alert";
 import Header from "./components/header/Header";
@@ -50,17 +52,7 @@ const queryClient = new QueryClient({
 
 const HeaderGate = ({ auth }) => {
   const location = useLocation();
-  const isAdminRoute = [
-    "/admin",
-    "/admin_dashboard",
-    "/admin_moderation",
-    "/admin_posts",
-    "/admin_premium",
-    "/admin_ai",
-    "/admin_notifications",
-    "/admin_reports",
-    "/admin_settings",
-  ].includes(location.pathname);
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   if (!auth.token || isAdminRoute) return null;
   return <Header />;
@@ -163,17 +155,28 @@ function App() {
           {auth.token && <MessageToast />}
 
           <Routes>
-            <Route
-              path="/"
-              element={
-                auth.token
-                  ? auth.user?.role === "admin"
-                    ? <Navigate to="/admin" replace />
-                    : <Home />
-                  : <Login />
-              }
-            />
-            <Route path="/feed" element={auth.token ? <Home /> : <Login />} />
+            <Route element={<UserShell />}>
+              <Route
+                path="/"
+                element={
+                  auth.token
+                    ? auth.user?.role === "admin"
+                      ? <Navigate to="/admin" replace />
+                      : <Home />
+                    : <Login />
+                }
+              />
+              <Route
+                path="/feed"
+                element={
+                  auth.token
+                    ? auth.user?.role === "admin"
+                      ? <Navigate to="/admin" replace />
+                      : <Home />
+                    : <Login />
+                }
+              />
+            </Route>
             <Route
               path="/admin"
               element={
@@ -204,6 +207,7 @@ function App() {
             <Route path="/admin_notifications" element={<PrivateRouter><AdminSection type="notifications" /></PrivateRouter>} />
             <Route path="/admin_reports" element={<PrivateRouter><AdminSection type="reports" /></PrivateRouter>} />
             <Route path="/admin_settings" element={<PrivateRouter><AdminSection type="settings" /></PrivateRouter>} />
+            <Route path="/admin_premium_support" element={<PrivateRouter><AdminPremiumSupport /></PrivateRouter>} />
             <Route path="/landing" element={<Landing />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot_password" element={<ForgotPassword />} />
@@ -211,23 +215,24 @@ function App() {
             <Route path="/premium" element={auth.token ? <Premium /> : <Login />} />
             <Route path="/premium/success" element={auth.token || firstLogin ? <PremiumSuccess /> : <Login />} />
 
-            <Route
-              path="/:page"
-              element={
-                <PrivateRouter>
-                  <PageRender />
-                </PrivateRouter>
-              }
-            />
-
-            <Route
-              path="/:page/:id"
-              element={
-                <PrivateRouter>
-                  <PageRender />
-                </PrivateRouter>
-              }
-            />
+            <Route element={<UserShell />}>
+              <Route
+                path="/:page"
+                element={
+                  <PrivateRouter>
+                    <PageRender />
+                  </PrivateRouter>
+                }
+              />
+              <Route
+                path="/:page/:id"
+                element={
+                  <PrivateRouter>
+                    <PageRender />
+                  </PrivateRouter>
+                }
+              />
+            </Route>
           </Routes>
         </div>
       </div>

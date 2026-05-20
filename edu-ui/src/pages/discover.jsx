@@ -156,14 +156,6 @@ const Discover = () => {
                         </div>
                     </div>
 
-                    <nav className="discover_nav_card">
-                        <Link to="/"><LayoutDashboard size={19} /> Dashboard</Link>
-                        <Link to={`/profile/${auth.user?._id}`}><UserRound size={19} /> My Profile</Link>
-                        <Link to="/discover" className="active"><Compass size={19} /> Discover</Link>
-                        <Link to="/message"><UsersRound size={19} /> Groups</Link>
-                        <Link to="/change_password"><Settings size={19} /> Settings</Link>
-                    </nav>
-
                     <button
                         className="discover_start_btn"
                         type="button"

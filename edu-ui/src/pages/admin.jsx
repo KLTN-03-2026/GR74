@@ -58,7 +58,7 @@ const Admin = () => {
       { label: "Tổng tài khoản", value: totalUsers, note: "tất cả kết quả", icon: "groups" },
       { label: "Đang hoạt động", value: active, note: "trang hiện tại", icon: "verified_user" },
       { label: "Quản trị viên", value: admins, note: "có quyền quản trị", icon: "admin_panel_settings" },
-      { label: "Đã bật AI", value: aiUsers, note: "trang hiện tại", icon: "smart_toy" },
+      { label: "Đã có Premium", value: aiUsers, note: "trang hiện tại", icon: "workspace_premium" },
     ];
   }, [users, totalUsers]);
 
@@ -175,7 +175,7 @@ const Admin = () => {
                 <th>Liên hệ</th>
                 <th>Vai trò</th>
                 <th>Trạng thái</th>
-                <th>AI học tập</th>
+                <th>Premium AI</th>
                 <th />
               </tr>
             </thead>
@@ -214,13 +214,23 @@ const Admin = () => {
                       type="button"
                       className={`admin_console_switch ${user.aiEnabled ? "is_on" : ""}`}
                       onClick={() => handleToggleAi(user)}
-                      aria-label="Bật tắt AI học tập"
+                      title={user.aiEnabled ? "Thu hồi Premium AI" : "Cấp Premium AI"}
+                      aria-label="Bật tắt Premium AI"
                     >
                       <i />
                     </button>
                   </td>
                   <td>
                     <div className="admin_console_actions">
+                      <button
+                        type="button"
+                        className={`admin_grant_btn ${user.aiEnabled ? "is_active" : ""}`}
+                        onClick={() => handleToggleAi(user)}
+                        title={user.aiEnabled ? "Thu hồi Premium" : "Cấp Premium"}
+                      >
+                        <span className="material-icons">{user.aiEnabled ? "workspace_premium" : "add_circle"}</span>
+                        {user.aiEnabled ? "Premium" : "Cấp Premium"}
+                      </button>
                       <button type="button" onClick={() => beginEdit(user)} title="Chỉnh sửa người dùng">
                         <span className="material-icons">edit</span>
                       </button>
@@ -326,7 +336,7 @@ const Admin = () => {
                   checked={Boolean(editing.aiEnabled)}
                   onChange={(e) => setEditing({ ...editing, aiEnabled: e.target.checked })}
                 />
-                Bật AI học tập
+                Cấp quyền Premium AI
               </label>
             </div>
 

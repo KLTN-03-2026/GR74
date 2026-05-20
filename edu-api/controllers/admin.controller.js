@@ -154,45 +154,51 @@ const adminCtrl = {
       const readinessItems = [
         {
           key: "openai",
-          label: "OpenAI chatbot",
+          label: "Trợ lý AI (OpenAI)",
           status: Boolean(process.env.OPENAI_API_KEY),
           detail: process.env.OPENAI_API_KEY
-            ? `Model ${process.env.OPENAI_MODEL || "gpt-4o-mini"} is configured`
-            : "OPENAI_API_KEY is missing",
+            ? `Đang dùng mô hình ${process.env.OPENAI_MODEL || "gpt-4o-mini"}`
+            : "Thiếu OPENAI_API_KEY trong biến môi trường",
         },
         {
           key: "stripe",
-          label: "Premium payment",
+          label: "Thanh toán Premium (Stripe)",
           status: Boolean(process.env.STRIPE_SECRET_KEY),
-          detail: process.env.STRIPE_SECRET_KEY ? "Stripe checkout can be created" : "STRIPE_SECRET_KEY is missing",
+          detail: process.env.STRIPE_SECRET_KEY
+            ? "Stripe đã sẵn sàng tạo phiên thanh toán"
+            : "Thiếu STRIPE_SECRET_KEY trong biến môi trường",
         },
         {
           key: "mail",
-          label: "Email workflow",
+          label: "Gửi email hệ thống",
           status: Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS),
           detail: process.env.EMAIL_USER && process.env.EMAIL_PASS
-            ? "Password reset and premium receipts can be mailed"
-            : "EMAIL_USER or EMAIL_PASS is missing",
+            ? "Có thể gửi email đặt lại mật khẩu và hóa đơn Premium"
+            : "Thiếu EMAIL_USER hoặc EMAIL_PASS trong biến môi trường",
         },
         {
           key: "jwt",
-          label: "JWT secrets",
+          label: "Bảo mật JWT",
           status: Boolean(process.env.ACCESS_TOKEN_SECRET && process.env.REFRESH_TOKEN_SECRET),
           detail: process.env.ACCESS_TOKEN_SECRET && process.env.REFRESH_TOKEN_SECRET
-            ? "Access and refresh token secrets are configured"
-            : "ACCESS_TOKEN_SECRET or REFRESH_TOKEN_SECRET is missing",
+            ? "Access token và refresh token đã được cấu hình"
+            : "Thiếu ACCESS_TOKEN_SECRET hoặc REFRESH_TOKEN_SECRET",
         },
         {
           key: "database",
-          label: "MongoDB",
+          label: "Cơ sở dữ liệu MongoDB",
           status: Boolean(process.env.MONGODB_URL),
-          detail: process.env.MONGODB_URL ? "Primary database URI is configured" : "MONGODB_URL is missing",
+          detail: process.env.MONGODB_URL
+            ? "URI kết nối MongoDB đã được cấu hình"
+            : "Thiếu MONGODB_URL trong biến môi trường",
         },
         {
           key: "redis",
-          label: "Redis scaling",
+          label: "Redis (cache & socket)",
           status: Boolean(process.env.REDIS_URL),
-          detail: process.env.REDIS_URL ? "Session/cache/socket scaling can use Redis" : "REDIS_URL is missing; memory fallback is used",
+          detail: process.env.REDIS_URL
+            ? "Redis sẵn sàng cho cache, phiên đăng nhập và socket"
+            : "Thiếu REDIS_URL — đang dùng bộ nhớ tạm thay thế",
         },
       ];
 
@@ -235,10 +241,10 @@ const adminCtrl = {
           score: readinessScore,
           items: readinessItems,
           thesisPoints: [
-            "JWT authentication and role-based admin access protect privileged screens.",
-            "Premium AI is gated by payment/account status before the chat endpoint responds.",
-            "Rate limiting, Helmet and CORS configuration reduce common API abuse risks.",
-            "Admin moderation can remove unsafe posts and disable accounts.",
+            "JWT xác thực và phân quyền theo vai trò bảo vệ các màn hình quản trị.",
+            "AI Premium được kiểm soát qua trạng thái thanh toán trước khi cho phép chat.",
+            "Rate limiting, Helmet và CORS giảm thiểu rủi ro tấn công API phổ biến.",
+            "Kiểm duyệt bài viết cho phép admin xóa nội dung không phù hợp và khóa tài khoản.",
           ],
         },
         payments: paymentRows.map((row) => ({
@@ -299,11 +305,24 @@ const adminCtrl = {
       const search = (req.query.search || "").trim();
       const filter = req.query.filter || "all";
       const mediaType = req.query.mediaType || "all";
+      const moderation = req.query.moderation || "pending";
 
       const query = {};
       const andConditions = [];
       if (filter === "premium") query.premium = true;
       if (filter === "standard") query.premium = { $ne: true };
+
+      if (moderation === "pending") {
+        andConditions.push({
+          $or: [
+            { moderationStatus: "pending" },
+            { moderationStatus: { $exists: false } },
+            { moderationStatus: null },
+          ],
+        });
+      } else if (moderation === "approved") {
+        query.moderationStatus = "approved";
+      }
 
       if (mediaType === "media") andConditions.push(imageMediaQuery);
       if (mediaType === "document") andConditions.push(documentMediaQuery);
@@ -336,7 +355,7 @@ const adminCtrl = {
 
       const [posts, total] = await Promise.all([
         Posts.find(query)
-          .select("content images tags premium likes comments user createdAt updatedAt")
+          .select("content images tags premium likes comments user moderationStatus createdAt updatedAt")
           .populate("user", "avatar username fullname email role")
           .sort("-createdAt")
           .skip((page - 1) * limit)
@@ -509,6 +528,55 @@ const adminCtrl = {
       if (!user) return res.status(404).json({ msg: "User does not exist." });
 
       return res.json({ msg: "User updated.", user });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  getPremiumRequests: async (req, res) => {
+    try {
+      const users = await Users.find({
+        role: "user",
+        $or: [
+          { "premiumPayment.status": "pending" },
+          { "premiumPayment.status": "paid", aiEnabled: false },
+        ],
+      })
+        .select("avatar username fullname email aiEnabled premiumPayment createdAt")
+        .sort({ "premiumPayment.updatedAt": -1 })
+        .lean();
+
+      return res.json({ users });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  activatePremium: async (req, res) => {
+    try {
+      const user = await Users.findByIdAndUpdate(
+        req.params.id,
+        { aiEnabled: true, aiEnabledAt: new Date() },
+        { new: true }
+      ).select("-password");
+
+      if (!user) return res.status(404).json({ msg: "User not found." });
+      return res.json({ msg: `Đã kích hoạt Premium cho ${user.username}.`, user });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  approvePost: async (req, res) => {
+    try {
+      const post = await Posts.findByIdAndUpdate(
+        req.params.id,
+        { moderationStatus: "approved" },
+        { new: true }
+      ).populate("user", "username fullname");
+
+      if (!post) return res.status(404).json({ msg: "Post not found." });
+      return res.json({ msg: "Bài viết đã được duyệt.", post });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
     }

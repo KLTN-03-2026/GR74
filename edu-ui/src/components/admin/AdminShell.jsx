@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../redux/actions/authAction";
 
 const navGroups = [
   {
@@ -16,6 +17,7 @@ const navGroups = [
     items: [
       { key: "posts", to: "/admin_posts", icon: "article", label: "Bài viết" },
       { key: "premium", to: "/admin_premium", icon: "workspace_premium", label: "Premium" },
+      { key: "premium_support", to: "/admin_premium_support", icon: "support_agent", label: "Hỗ trợ Premium" },
       { key: "ai", to: "/admin_ai", icon: "smart_toy", label: "AI học tập" },
       { key: "notifications", to: "/admin_notifications", icon: "notifications_active", label: "Thông báo" },
     ],
@@ -25,7 +27,6 @@ const navGroups = [
     items: [
       { key: "reports", to: "/admin_reports", icon: "monitoring", label: "Báo cáo" },
       { key: "settings", to: "/admin_settings", icon: "tune", label: "Cấu hình" },
-      { key: "site", to: "/feed", icon: "home", label: "Bảng tin" },
     ],
   },
 ];
@@ -39,6 +40,7 @@ const AdminShell = ({
   children,
 }) => {
   const { auth } = useSelector((state) => state);
+  const dispatch = useDispatch();
 
   return (
     <div className="admin_console admin_console_v2">
@@ -79,6 +81,14 @@ const AdminShell = ({
             <strong>{auth.user?.fullname || auth.user?.username || "Quản trị viên"}</strong>
             <small>Quản trị viên</small>
           </div>
+          <button
+            type="button"
+            className="admin_console_logout_btn"
+            onClick={() => dispatch(logout())}
+            title="Đăng xuất"
+          >
+            <span className="material-icons">logout</span>
+          </button>
         </div>
       </aside>
 

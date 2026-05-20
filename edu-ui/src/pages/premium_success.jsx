@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { postDataAPI } from "../utils/fetchData";
+import { getDataAPI, postDataAPI } from "../utils/fetchData";
 import { GLOBALTYPES } from "../redux/actions/globalTypes";
+import { MESS_TYPES } from "../redux/actions/messageAction";
 import { getErrorMessage } from "../utils/errorMessage";
 
 const PremiumSuccess = () => {
@@ -13,6 +14,7 @@ const PremiumSuccess = () => {
   const [status, setStatus] = useState("Xác nhận thanh toán...");
   const [success, setSuccess] = useState(false);
   const [transactionId] = useState("#TRX-98234-EDU");
+  const [contactingAdmin, setContactingAdmin] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
@@ -41,6 +43,20 @@ const PremiumSuccess = () => {
     confirm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search, auth.token]);
+
+  const contactAdmin = async () => {
+    if (!auth.token) return;
+    setContactingAdmin(true);
+    try {
+      const res = await getDataAPI("premium/admin-contact", auth.token);
+      const admin = res.data.admin;
+      dispatch({ type: MESS_TYPES.ADD_USER, payload: { ...admin, text: "", media: [] } });
+      navigate(`/message/${admin._id}`);
+    } catch (err) {
+      dispatch({ type: GLOBALTYPES.ALERT, payload: { error: "Không tìm thấy admin. Vui lòng thử lại." } });
+      setContactingAdmin(false);
+    }
+  };
 
   const createConfetti = () => {
     const container = document.getElementById("confetti-ps");
@@ -223,6 +239,28 @@ const PremiumSuccess = () => {
                 </svg>
               </button>
             </div>
+
+            {/* Contact Admin button */}
+            <button
+              onClick={contactAdmin}
+              disabled={contactingAdmin}
+              style={{
+                width:"100%", padding:"13px 16px",
+                background: contactingAdmin ? "#f1f5f9" : "#fff",
+                border:"1.5px solid #cbd5e1",
+                borderRadius:"12px", color:"#475569",
+                fontSize:"0.875rem", fontWeight:700, cursor:"pointer",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:"8px",
+                transition:"all 0.2s",
+              }}
+              onMouseEnter={e => { if (!contactingAdmin) { e.currentTarget.style.borderColor="#2563eb"; e.currentTarget.style.color="#2563eb"; }}}
+              onMouseLeave={e => { e.currentTarget.style.borderColor="#cbd5e1"; e.currentTarget.style.color="#475569"; }}
+            >
+              <svg style={{ width:"16px", height:"16px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              {contactingAdmin ? "Đang kết nối..." : "Liên hệ Admin để kích hoạt Premium"}
+            </button>
 
             {/* Receipt link */}
             {success && (

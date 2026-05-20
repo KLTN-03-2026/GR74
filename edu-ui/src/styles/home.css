@@ -1,3 +1,60 @@
+/* --------- UserShell persistent sidebar layout ---------- */
+.user_shell_wrap {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-height: calc(100vh - 72px);
+  background: #f8f9ff;
+  align-items: flex-start;
+}
+
+.user_shell_left {
+  position: sticky;
+  top: 72px;
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-right: 1px solid #e5eeff;
+  background: #fff;
+  padding: 24px 16px;
+}
+
+.user_shell_main {
+  min-width: 0;
+}
+
+/* --------- Home page inner layout ---------- */
+.home_page {
+  padding: 28px clamp(14px, 2vw, 32px) 72px;
+  background: #f8f9ff;
+}
+
+.home_inner_grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (max-width: 1100px) {
+  .home_inner_grid {
+    grid-template-columns: 1fr;
+  }
+  .learning-side {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .user_shell_wrap {
+    grid-template-columns: 1fr;
+  }
+  .user_shell_left {
+    display: none;
+  }
+}
+
 /* --------- Home / feed ---------- */
 .learning-shell {
   width: 100%;

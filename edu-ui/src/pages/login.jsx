@@ -4,13 +4,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../redux/actions/authAction";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowLeft, BrainCircuit, Eye, EyeOff, Lock, Mail, Sparkles } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const initialState = { email: "", password: "" };
   const [userData, setUserData] = useState(initialState);
   const { email, password } = userData;
-
   const [typePass, setTypePass] = useState(false);
 
   const { auth } = useSelector((state) => state);
@@ -32,87 +31,83 @@ const Login = () => {
   };
 
   return (
-    <div className="auth_page login_page">
-      <section className="login_shell">
-        <aside className="login_brand">
-          <div className="login_brand_content">
-            <h1>Edu Social</h1>
-            <p>Nền tảng học tập xã hội kết hợp AI. Kết nối, học hỏi và phát triển cùng cộng đồng.</p>
-          </div>
-          <div className="login_illustration" aria-hidden="true">
-            <BrainCircuit size={180} />
-            <div className="login_orbit one" />
-            <div className="login_orbit two" />
-            <div className="login_orbit three" />
-          </div>
-        </aside>
-
-        <div className="login_panel">
-          <div className="login_mobile_brand">
-            <h1>Edu Social</h1>
-            <p>Đăng nhập để tiếp tục</p>
-          </div>
-
-          <form className="login_form" onSubmit={handleSubmit}>
-            <div className="login_head">
-              <span><Sparkles size={16} /> Learning network</span>
-              <h2>Chào mừng trở lại</h2>
-              <p>Vui lòng đăng nhập vào tài khoản của bạn.</p>
-            </div>
-
-            <div className="login_field">
-              <label htmlFor="exampleInputEmail1">Email</label>
-              <div className="login_input">
-                <Mail size={18} />
-                <input
-                  type="email"
-                  id="exampleInputEmail1"
-                  name="email"
-                  placeholder="nhap@email.com"
-                  onChange={handleChangeInput}
-                  value={email}
-                />
-              </div>
-            </div>
-
-            <div className="login_field">
-              <div className="login_label_row">
-                <label htmlFor="exampleInputPassword1">Mật khẩu</label>
-                <Link to="/forgot_password">Quên mật khẩu?</Link>
-              </div>
-
-              <div className="login_input">
-                <Lock size={18} />
-                <input
-                  type={typePass ? "text" : "password"}
-                  id="exampleInputPassword1"
-                  onChange={handleChangeInput}
-                  value={password}
-                  name="password"
-                  placeholder="••••••••"
-                />
-
-                <button type="button" onClick={() => setTypePass(!typePass)} aria-label={typePass ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
-                  {typePass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <button type="submit" className="login_submit" disabled={email && password ? false : true}>
-              Đăng nhập
-            </button>
-
-            <p className="login_register">
-              Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
-            </p>
-
-            <Link to="/landing" className="login_back">
-              <ArrowLeft size={16} />
-              Giới thiệu hệ thống Edu Social
-            </Link>
-          </form>
+    <div className="lp_root">
+      <aside className="lp_brand">
+        <div className="lp_brand_logo">
+          <img src="/edu.png" alt="Edu Social" />
+          <span>Edu Social</span>
         </div>
-      </section>
+        <div className="lp_brand_body">
+          <h1>Học cùng nhau,<br />tiến xa hơn.</h1>
+          <p>Nền tảng học tập xã hội kết hợp AI — kết nối, chia sẻ và phát triển cùng cộng đồng sinh viên.</p>
+          <ul className="lp_features">
+            <li><span className="material-icons">auto_awesome</span> AI hỗ trợ học tập cá nhân hoá</li>
+            <li><span className="material-icons">groups</span> Kết nối cộng đồng học tập</li>
+            <li><span className="material-icons">workspace_premium</span> Nội dung premium chất lượng cao</li>
+          </ul>
+        </div>
+        <p className="lp_brand_footer">© 2025 Edu Social · Hệ thống học tập thông minh</p>
+      </aside>
+
+      <main className="lp_panel">
+        <form className="lp_form" onSubmit={handleSubmit}>
+          <div className="lp_form_logo">
+            <img src="/edu.png" alt="Edu Social" />
+          </div>
+
+          <div className="lp_form_head">
+            <h2>Chào mừng trở lại</h2>
+            <p>Đăng nhập vào tài khoản của bạn để tiếp tục.</p>
+          </div>
+
+          <div className="lp_field">
+            <label htmlFor="lp_email">Email</label>
+            <input
+              id="lp_email"
+              type="email"
+              name="email"
+              placeholder="example@email.com"
+              value={email}
+              onChange={handleChangeInput}
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="lp_field">
+            <div className="lp_label_row">
+              <label htmlFor="lp_password">Mật khẩu</label>
+              <Link to="/forgot_password">Quên mật khẩu?</Link>
+            </div>
+            <div className="lp_pass_wrap">
+              <input
+                id="lp_password"
+                type={typePass ? "text" : "password"}
+                name="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={handleChangeInput}
+                autoComplete="current-password"
+              />
+              <button type="button" className="lp_eye" onClick={() => setTypePass(!typePass)} aria-label="Hiện/ẩn mật khẩu">
+                {typePass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" className="lp_submit" disabled={!email || !password}>
+            Đăng nhập
+          </button>
+
+          <p className="lp_register">
+            Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+          </p>
+
+          <Link to="/landing" className="lp_back">
+            <span className="material-icons" style={{ fontSize: 16 }}>arrow_back</span>
+            Tìm hiểu về Edu Social
+          </Link>
+        </form>
+      </main>
     </div>
   );
 };

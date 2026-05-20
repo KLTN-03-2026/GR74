@@ -6,6 +6,7 @@ const postSchema = new mongoose.Schema({
     tags: [{ type: String, trim: true, lowercase: true, index: true }],
     category: { type: String, default: 'Thảo luận', index: true },
     premium: { type: Boolean, default: false, index: true },
+    moderationStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending', index: true },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'comment' }],
     user: {type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true, index: true}
